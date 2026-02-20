@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiliate Arcade v5.0 | CustomGPT Pilot</title>
+    <style>
+        body { margin: 0; background: #050505; color: #fff; overflow: hidden; font-family: 'Courier New', monospace; }
+        canvas { display: block; margin: 0 auto; background: #000; box-shadow: 0 0 20px #00f0ff; margin-top: 5vh; max-width: 100%; }
+        #reviveOverlay { display: none; position: fixed; inset: 0; background: rgba(5, 5, 5, 0.95); justify-content: center; align-items: center; z-index: 9999; }
+        .revive-box { border: 2px solid #00f0ff; padding: 40px; border-radius: 18px; text-align: center; background: #111; box-shadow: 0 0 40px #00f0ff; }
+        .revive-box h1 { color: #ff2d2d; letter-spacing: 2px; }
+        .tagline { color: #aaa; margin: 20px 0; }
+        .tagline span { color: #ffd700; font-weight: bold; font-size: 20px;}
+        .revive-btn { display: inline-block; padding: 15px 30px; margin-top: 20px; border-radius: 12px; background: #00f0ff; color: black; font-weight: bold; text-decoration: none; box-shadow: 0 0 25px #00f0ff; font-size: 18px; }
+        .revive-btn:hover { background: #fff; box-shadow: 0 0 35px #fff; }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="900" height="500"></canvas>
+
+<div id="reviveOverlay">
+    <div class="revive-box">
+        <h1>💀 SYSTEM CRASH @500m</h1>
+        <p class="tagline">Revive powered by <br><br><span>CustomGPT.ai</span></p>
+        <a class="revive-btn" href="https://customgpt.ai/" target="_blank">⚡ REVIVE TO CONTINUE</a>
+        <p style="font-size: 11px; color: #555; margin-top: 25px;">Operator Note: Tier 1 Anchor Reward Activated.</p>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const overlay = document.getElementById("reviveOverlay");
+
+    let distance = 0;
+    let running = true;
+    let slowMo = false;
+    let milestoneTriggered = false;
+    let glitchAlpha = 0;
+
+    function neonText(text, x, y, size, color) {
+        ctx.font = `${size}px Courier New`;
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 15;
+        ctx.fillText(text, x, y);
+        ctx.shadowBlur = 0;
+    }
+
+    function triggerCrash() {
+        milestoneTriggered = true;
+        running = false;
+        slowMo = true;
+        glitchAlpha = 0.05;
+        
+        // Show cinematic overlay after 1.8 seconds
+        setTimeout(() => { overlay.style.display = 'flex'; }, 1800);
+    }
+
+    function gameLoop() {
+        if (running) distance += slowMo ? 0.2 : 2.5;
+        
+        ctx.fillStyle = "#050505";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Grid effect
+        ctx.strokeStyle = "#111";
+        ctx.lineWidth = 2;
+        for(let i=0; i<canvas.width; i+=50) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
+        
+        neonText(`DISTANCE: ${Math.floor(distance)}m`, 30, 60, 28, "#00f0ff");
+        neonText(`TIER 1 TARGET: CustomGPT`, 30, 100, 16, "#555");
+
+        if (distance >= 500 && !milestoneTriggered) { triggerCrash(); }
+
+        if (milestoneTriggered) {
+            glitchAlpha += 0.02;
+            ctx.fillStyle = `rgba(0,240,255,${glitchAlpha})`;
+            ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, canvas.width, 15);
+            neonText(">>> MONEY STOP ACTIVE <<<", 200, 250, 34, "#FFD700");
+            neonText("CustomGPT EMERGING...", 270, 310, 22, "#00f0ff");
+        }
+        requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
+</script>
+</body>
+</html>
