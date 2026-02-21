@@ -1,0 +1,56 @@
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import twilio from 'twilio';
+
+// Initialize the Gemini API
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// Using a fast model optimized for quick text responses
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }); 
+
+export async function POST(request: Request) {
+  try {
+    // Twilio sends incoming text messages as URL-encoded form data
+    const formData = await request.formData();
+    const incomingMessage = formData.get('Body')?.toString() || '';
+    const senderNumber = formData.get('From')?.toString() || '';
+
+    // The Brain: Your extracted NotebookLM knowledge goes here
+    const systemPrompt = `
+      You are Digital Tariq, the AI Twin for RIQ LLC and Affiliate Arcade v5.0.
+      Your primary goals are to support affiliate partners, explain our gamified 
+      mechanics like the 500m Milestone Trap and Weighted RNG, and connect people 
+      with our community outreach resources.
+      Tone: Professional, ambitious, and highly supportive. 
+      Constraint: Keep responses concise and under 320 characters so they fit nicely in an SMS.
+    `;
+
+    // Send the prompt and the user's text to Gemini
+    const result = await model.generateContent([
+      { text: systemPrompt },
+      { text: `Incoming text from ${senderNumber}: ${incomingMessage}` }
+    ]);
+    
+    const aiResponseText = result.response.text();
+
+    // Format the AI's response using Twilio's XML format (TwiML)
+    const twiml = new twilio.twiml.MessagingResponse();
+    twiml.message(aiResponseText);
+
+    // Send it back to Twilio, which forwards it to the customer
+    return new Response(twiml.toString(), {
+      headers: { 'Content-Type': 'text/xml' },
+      status: 200
+    });
+
+  } catch (error) {
+    console.error('Error with Digital Tariq AI generation:', error);
+    
+    // Failsafe in case of a timeout or error
+    const twiml = new twilio.twiml.MessagingResponse();
+    twiml.message("RIQ LLC Systems: Digital Tariq is currently syncing data. We will get back to you shortly.");
+    
+    return new Response(twiml.toString(), {
+      headers: { 'Content-Type': 'text/xml' },
+      status: 200
+    });
+  }
+}
